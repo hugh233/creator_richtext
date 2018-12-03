@@ -577,75 +577,86 @@ let RichText = cc.Class({
 
     _addRichTextImageElement (richTextElement) {
         let spriteFrameName = richTextElement.style.src;
-        let self = this
-        cc.loader.loadRes(spriteFrameName, cc.SpriteFrame, function(err, res)
+        let names = richTextElement.style.src.split("/")
+        if(names.length > 1)
         {
-            if(res == null || err)
+            let self = this
+            cc.loader.loadRes(spriteFrameName, cc.SpriteFrame, function(err, res)
             {
-                console.error("setRichText Img Error")
-                return
-            }
-            let spriteFrame = res//this.imageAtlas.getSpriteFrame(spriteFrameName);
-            if (spriteFrame) {
-                let spriteNode = new cc.PrivateNode()//new cc.PrivateNode(RichTextChildImageName);
-                let spriteComponent = spriteNode.addComponent(cc.Sprite);
-                spriteNode.setAnchorPoint(0, 0);
-                spriteComponent.type = cc.Sprite.Type.SLICED;
-                spriteComponent.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-                spriteComponent.spriteFrame = spriteFrame
-                self.node.addChild(spriteNode);
-                self._labelSegments.push(spriteNode);
-
-                let spriteRect = spriteFrame.getRect();
-                let scaleFactor = 1;
-                let spriteWidth = spriteRect.width;
-                let spriteHeight = spriteRect.height;
-                let expectWidth = richTextElement.style.imageWidth;
-                let expectHeight = richTextElement.style.imageHeight;
-
-                //follow the original rule, expectHeight must less then lineHeight
-                if (expectHeight > 0 && expectHeight < self.lineHeight) {
-                    scaleFactor = expectHeight / spriteHeight;
-                    spriteWidth = spriteWidth * scaleFactor;
-                    spriteHeight = spriteHeight * scaleFactor;
+                if(err)
+                {
+                    console.error("richtext addImage error -> ", spriteFrameName)
+                    return
                 }
-                else {
-                    scaleFactor = self.lineHeight / spriteHeight;
-                    spriteWidth = spriteWidth * scaleFactor;
-                    spriteHeight = spriteHeight * scaleFactor;
-                }
+                self.useImageAtlas(richTextElement, res)
+            })
+        }else{
+            let spriteFrame = this.imageAtlas.getSpriteFrame(spriteFrameName);
+            this.useImageAtlas(richTextElement, spriteFrame)
+        }
+    },
 
-                if (expectWidth > 0) spriteWidth = expectWidth;
+    useImageAtlas(richTextElement, spriteFrame)
+    {
+        let spriteFrameName = richTextElement.style.src;
+        if (spriteFrame) {
+            let spriteNode = new cc.PrivateNode(RichTextChildImageName);
+            let spriteComponent = spriteNode.addComponent(cc.Sprite);
+            spriteNode.setAnchorPoint(0, 0);
+            spriteComponent.type = cc.Sprite.Type.SLICED;
+            spriteComponent.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            this.node.addChild(spriteNode);
+            this._labelSegments.push(spriteNode);
 
-                if (self.maxWidth > 0) {
-                    if (self._lineOffsetX + spriteWidth > self.maxWidth) {
-                        self._updateLineInfo();
-                    }
-                    self._lineOffsetX += spriteWidth;
+            let spriteRect = spriteFrame.getRect();
+            let scaleFactor = 1;
+            let spriteWidth = spriteRect.width;
+            let spriteHeight = spriteRect.height;
+            let expectWidth = richTextElement.style.imageWidth;
+            let expectHeight = richTextElement.style.imageHeight;
 
-                }
-                else {  
-                    self._lineOffsetX += spriteWidth;
-                    if (self._lineOffsetX > self._labelWidth) {
-                        self._labelWidth = self._lineOffsetX;
-                    }
-                }
-                spriteComponent.spriteFrame = spriteFrame;
-                spriteNode.setContentSize(spriteWidth, spriteHeight);
-                spriteNode._lineCount = self._lineCount;
-
-                if (richTextElement.style.event) {
-                    if (richTextElement.style.event.click) {
-                        spriteNode._clickHandler = richTextElement.style.event.click;
-                        spriteNode._clickType = richTextElement.style.event.eventType;
-                        spriteNode._clickArgs = richTextElement.style.event.eventArgs;
-                    }
-                }
+            //follow the original rule, expectHeight must less then lineHeight
+            if (expectHeight > 0 && expectHeight < this.lineHeight) {
+                scaleFactor = expectHeight / spriteHeight;
+                spriteWidth = spriteWidth * scaleFactor;
+                spriteHeight = spriteHeight * scaleFactor;
             }
             else {
-                cc.warnID(4400);
+                scaleFactor = this.lineHeight / spriteHeight;
+                spriteWidth = spriteWidth * scaleFactor;
+                spriteHeight = spriteHeight * scaleFactor;
             }
-        })
+
+            if (expectWidth > 0) spriteWidth = expectWidth;
+
+            if (this.maxWidth > 0) {
+                if (this._lineOffsetX + spriteWidth > this.maxWidth) {
+                    this._updateLineInfo();
+                }
+                this._lineOffsetX += spriteWidth;
+
+            }
+            else {
+                this._lineOffsetX += spriteWidth;
+                if (this._lineOffsetX > this._labelWidth) {
+                    this._labelWidth = this._lineOffsetX;
+                }
+            }
+            spriteComponent.spriteFrame = spriteFrame;
+            spriteNode.setContentSize(spriteWidth, spriteHeight);
+            spriteNode._lineCount = this._lineCount;
+
+            if (richTextElement.style.event) {
+                if (richTextElement.style.event.click) {
+                    spriteNode._clickHandler = richTextElement.style.event.click;
+                    spriteNode._clickType = richTextElement.style.event.eventType;
+                    spriteNode._clickArgs = richTextElement.style.event.eventArgs;
+                }
+            }
+        }
+        else {
+            cc.warnID(4400);
+        }
     },
 
     _updateRichText () {
