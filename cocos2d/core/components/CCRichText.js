@@ -580,23 +580,15 @@ let RichText = cc.Class({
         let names = richTextElement.style.src.split("/")
         if(names.length > 1)
         {
-            let self = this
-            cc.loader.loadRes(spriteFrameName, cc.SpriteFrame, function(err, res)
-            {
-                if(err)
-                {
-                    console.error("richtext addImage error -> ", spriteFrameName)
-                    return
-                }
-                self.useImageAtlas(richTextElement, res)
-            })
+            let spriteFrame = this.imageAtlas.getSpriteFrame("emoji1");
+            this.setImageTexture(richTextElement, spriteFrame, true)
         }else{
             let spriteFrame = this.imageAtlas.getSpriteFrame(spriteFrameName);
-            this.useImageAtlas(richTextElement, spriteFrame)
+            this.setImageTexture(richTextElement, spriteFrame, false)
         }
     },
 
-    useImageAtlas(richTextElement, spriteFrame)
+    setImageTexture(richTextElement, spriteFrame, useImagePath)
     {
         let spriteFrameName = richTextElement.style.src;
         if (spriteFrame) {
@@ -652,6 +644,20 @@ let RichText = cc.Class({
                     spriteNode._clickType = richTextElement.style.event.eventType;
                     spriteNode._clickArgs = richTextElement.style.event.eventArgs;
                 }
+            }
+
+            if(useImagePath)
+            {
+                let self = this
+                cc.loader.loadRes(spriteFrameName, cc.SpriteFrame, function(err, res)
+                {
+                    if(err)
+                    {
+                        console.error("richtext addImage error -> ", spriteFrameName)
+                        return
+                    }
+                    spriteComponent.spriteFrame = res;
+                })
             }
         }
         else {
