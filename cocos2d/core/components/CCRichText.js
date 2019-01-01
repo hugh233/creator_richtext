@@ -657,6 +657,9 @@ let RichText = cc.Class({
                         return
                     }
                     spriteComponent.spriteFrame = res;
+                    spriteWidth = richTextElement.style.imageWidth
+                    spriteHeight = richTextElement.style.imageHeight
+                    spriteNode.setContentSize(spriteWidth, spriteHeight);
                 })
             }
         }
